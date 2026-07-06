@@ -1,0 +1,430 @@
+<!DOCTYPE html>
+
+<html lang="ko">
+<head>
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta charset="utf-8"/>
+<title>2025년 부국광산 현장정보 공유시스템</title>
+<style>
+    html, body { margin: 0; padding: 0; height: 100%; }
+    #map { width: 100%; height: 100vh; position: relative; }
+    .slider-wrapper {
+      position: relative;
+      max-width: 300px;
+      overflow: hidden;
+      text-align: center;
+    }
+    .slider-wrapper img {
+      width: 100%;
+      max-height: 300px;
+      display: none;
+      object-fit: contain;
+    }
+    .slider-wrapper img.active { display: block; }
+    .slider-button {
+      position: absolute;
+      top: 50%;
+      transform: translateY(-50%);
+      background: rgba(0,0,0,0.6);
+      color: white;
+      border: none;
+      padding: 5px 10px;
+      cursor: pointer;
+      font-size: 18px;
+      z-index: 10;
+    }
+    .slider-button.left { left: 5px; }
+    .slider-button.right { right: 5px; }
+    .gps-button {
+      position: absolute;
+      bottom: 20px;
+      right: 20px;
+      background: white;
+      border: 1px solid #ccc;
+      border-radius: 50%;
+      width: 42px;
+      height: 42px;
+      box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
+      background-image: url('./photos/My_GPS.png');
+      background-size: 80% 80%;
+      background-repeat: no-repeat;
+      background-position: center;
+      cursor: pointer;
+      z-index: 100;
+    }
+    .gps-loading::after {
+      content: '';
+      position: absolute;
+      width: 24px;
+      height: 24px;
+      border: 3px solid #ccc;
+      border-top: 3px solid #333;
+      border-radius: 50%;
+      animation: spin 1s linear infinite;
+      top: 9px;
+      left: 9px;
+    }
+    @keyframes spin {
+      from { transform: rotate(0deg); }
+      to { transform: rotate(360deg); }
+    }
+    #layerControl {
+      position: absolute;
+      top: 10px;
+      right: 10px;
+      background: rgba(255, 255, 255, 0.9);
+      border: 1px solid #ccc;
+      border-radius: 4px;
+      padding: 10px;
+      z-index: 100;
+      max-height: 300px;
+      overflow: auto;
+    }
+    #layerControl ul {
+      list-style: none;
+      padding: 0;
+      margin: 0;
+    }
+    #layerControl li {
+      cursor: move;
+      padding: 4px 8px;
+      border: 1px solid #ddd;
+      margin-bottom: 5px;
+      background: #f9f9f9;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+  </style>
+<script src="https://dapi.kakao.com/v2/maps/sdk.js?appkey=9e36db09e57011893c10d8a46f344a7f&amp;autoload=false"></script>
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script src="https://code.jquery.com/ui/1.13.0/jquery-ui.min.js"></script>
+<link href="https://code.jquery.com/ui/1.13.0/themes/base/jquery-ui.css" rel="stylesheet"/>
+<script src="https://dapi.kakao.com/v2/maps/sdk.js?appkey=9e36db09e57011893c10d8a46f344a7f&amp;libraries=services"></script></head>
+<body>
+
+<div id="searchContainer" style="position:absolute;top:10px;left:10px;z-index:200;background:white;padding:8px;border-radius:4px;box-shadow:0 2px 6px rgba(0,0,0,0.3);">
+<input id="keyword" placeholder="주소 검색" style="font-size:16px;width:140px;padding:4px;" type="text"/>
+<button onclick="searchPlaces()" style="padding:4px;">검색</button>
+<ul id="placesList" style="list-style:none;padding:0;margin-top:5px;max-height:200px;overflow:auto;"></ul>
+</div>
+<div id="map"></div>
+<div class="gps-button" id="gpsToggleBtn" title="내 위치"></div>
+<div id="layerControl">
+<strong>레이어 설정</strong>
+<ul id="layerList"></ul>
+</div>
+<script>
+let map;
+
+    kakao.maps.load(function () {
+      map = new kakao.maps.Map(document.getElementById('map'), {
+        center: new kakao.maps.LatLng(36.460980, 127.615083),
+        level: 4,
+        mapTypeId: kakao.maps.MapTypeId.HYBRID
+      });
+
+      const layerData = {
+        adits: { file: 'BG_adits.geojson', name: '갱구', visible: true, zoomLevel: 3 },
+        sampling: { file: 'samplingresult_1st.geojson', name: '시료채취지점', visible: true },
+        non_remediation: { file: 'BG_non_soilremediation_2nd.geojson', name: '토양미복원지역', visible: true },  
+        remediation: { file: 'BG_soilremediation.geojson', name: '토양복원지역', visible: true },
+        mainflow: { file: 'BG_mainflowline.geojson', name: '하천중심선', visible: true },
+        boundary: { file: 'BG_boundary.geojson', name: '임야지역경계', visible: true },
+        sampling1: { file: 'BG_rice12.geojson', name: '논(채취예정지점)', visible: true },
+        sampling2: { file: 'BG_samplingsite_3rd.geojson', name: '3차시료채취지점', visible: true }
+      };
+
+      const layerOrder = ['adits', 'sampling', 'sampling2', 'sampling1', 'non_remediation', 'remediation', 'mainflow', 'boundary'];
+      const layerObjects = {};
+
+      const markerIcons = {
+        sampling: {
+          url: './photos/marker_blue.png',
+          size: new kakao.maps.Size(32, 32),
+          offset: new kakao.maps.Point(16, 32)
+        },
+        adits: {
+          url: './photos/marker_red.png',
+          size: new kakao.maps.Size(32, 32),
+          offset: new kakao.maps.Point(16, 32)
+        }
+      };
+
+      const openInfoWindows = [];
+
+      function fetchLayers() {
+        layerOrder.forEach(layerType => {
+          const { file } = layerData[layerType];
+          fetch(file)
+            .then(res => res.json())
+            .then(geojson => {
+              const objs = drawGeoJSON(geojson, layerType);
+              layerObjects[layerType] = objs;
+              if (!layerData[layerType].visible) setLayerVisibility(layerType, false);
+            });
+        });
+      }
+
+      function setLayerVisibility(type, visible) {
+        if (!layerObjects[type]) return;
+        layerObjects[type].forEach(obj => {
+          if (obj.setMap) obj.setMap(visible ? map : null);
+        });
+      }
+
+      function refreshLayerOrder() {
+        const zIndexStart = 100;
+        [...$('#layerList li')].reverse().forEach((li, i) => {
+          const type = $(li).data('layer');
+          layerObjects[type]?.forEach(obj => obj.setZIndex?.(zIndexStart + i));
+        });
+      }
+
+      function drawLayerControl() {
+        const $list = $('#layerList').empty();
+        layerOrder.forEach(type => {
+          const li = $(`<li data-layer="${type}"><span>${layerData[type].name}</span><input type="checkbox" checked /></li>`);
+          li.find('input').prop('checked', layerData[type].visible);
+          li.find('input').on('change', function () {
+            layerData[type].visible = this.checked;
+            setLayerVisibility(type, this.checked);
+          });
+          $list.append(li);
+        });
+        $list.sortable({ update: function () {
+          layerOrder.length = 0;
+          $list.children().each((_, li) => layerOrder.push($(li).data('layer')));
+          refreshLayerOrder();
+        }});
+      }
+
+      function drawGeoJSON(geojson, type) {
+        const objs = [];
+        geojson.features.forEach(f => {
+          const { type: gtype, coordinates } = f.geometry;
+          const props = f.properties || {};
+
+          if (gtype === 'Polygon' || gtype === 'MultiPolygon') {
+            const polys = gtype === 'Polygon' ? [coordinates] : coordinates;
+            polys.forEach(polygon => {
+              polygon.forEach(ring => {
+                const path = ring.map(([lng, lat]) => new kakao.maps.LatLng(lat, lng));
+                const style = getPolygonStyle(type);
+                const poly = new kakao.maps.Polygon({
+                  path,
+                  strokeWeight: style.strokeWeight,
+                  strokeColor: style.strokeColor,
+                  strokeStyle: style.strokeStyle,
+                  fillColor: style.fillColor,
+                  fillOpacity: style.fillOpacity
+                });
+                poly.setMap(map);
+                objs.push(poly);
+              });
+            });
+          } else if (gtype === 'LineString' || gtype === 'MultiLineString') {
+            const lines = gtype === 'LineString' ? [coordinates] : coordinates;
+            lines.forEach(line => {
+              const path = line.map(([lng, lat]) => new kakao.maps.LatLng(lat, lng));
+              const style = getLineStyle(type);
+              const polyline = new kakao.maps.Polyline({
+                path,
+                strokeWeight: style.strokeWeight,
+                strokeColor: style.strokeColor,
+                strokeOpacity: style.strokeOpacity
+              });
+              polyline.setMap(map);
+              objs.push(polyline);
+            });
+          } else if (gtype === 'Point') {
+            const [lng, lat] = coordinates;
+            const pointPos = new kakao.maps.LatLng(lat, lng);
+            const markerImageInfo = markerIcons[type];
+            const marker = new kakao.maps.Marker({
+              position: pointPos,
+              image: markerImageInfo ? new kakao.maps.MarkerImage(markerImageInfo.url, markerImageInfo.size, { offset: markerImageInfo.offset }) : undefined
+            });
+            marker.setMap(map);
+            objs.push(marker);
+
+            const label = new kakao.maps.CustomOverlay({
+              position: pointPos,
+              content: `<div style="background:white;border:2px solid #888;padding:4px 8px;border-radius:6px;font-size:16px;font-weight:bold;transform:translate(30px,-25px);pointer-events:none;box-shadow:2px 2px 6px rgba(0,0,0,0.2);">${props.name || ''}</div>`,
+              xAnchor: 0,
+              yAnchor: 0.5
+            });
+            label.setMap(map);
+            objs.push(label);
+
+            if (Array.isArray(props.photo_urls) && props.photo_urls.length > 0) {
+              const images = props.photo_urls.map((url, i) => `<img src="${url}" class="${i === 0 ? 'active' : ''}" />`).join('');
+              const content = `<div style="padding:5px;max-width:420px;"><strong>${props.name || ''}</strong><br><div class="slider-wrapper">${images}<button class="slider-button left" onclick="prevSlide(this)">←</button><button class="slider-button right" onclick="nextSlide(this)">→</button></div></div>`;
+              const infowindow = new kakao.maps.InfoWindow({ content });
+              kakao.maps.event.addListener(marker, 'click', function () {
+                openInfoWindows.forEach(iw => iw.close());
+                infowindow.open(map, marker);
+                openInfoWindows.length = 0;
+                openInfoWindows.push(infowindow);
+              });
+            }
+          }
+        });
+        return objs;
+      }
+
+      function getPolygonStyle(type) {
+       if (type === 'boundary') {
+       return { strokeWeight: 2.5, strokeColor: '#FFFF00', strokeStyle: 'dash', fillColor: 'rgba(0,0,0,0)', fillOpacity: 0 };
+       } 
+       else if (type === 'non_remediation') {
+       return { strokeWeight: 2.5, strokeColor: '#F37E01', strokeStyle: 'solid', fillColor: '#F37E01', fillOpacity: 0.3 };
+       }  
+       else if (type === 'remediation') {
+       return { strokeWeight: 2.5, strokeColor: '#7601F3', strokeStyle: 'solid', fillColor: '#A016FC', fillOpacity: 0.3 };
+       } 
+       else if (type === 'sampling1') {
+       return { strokeWeight: 3, strokeColor: '#d4d144', strokeStyle: 'solid', fillColor: '#fcfc11', fillOpacity: 0.7 };
+       } 
+       else if (type === 'sampling2') {
+       return { strokeWeight: 3, strokeColor: '#05F5111', strokeStyle: 'solid', fillColor: '#04BF0D', fillOpacity: 0.7 };
+       }   
+       else { return { strokeWeight: 2, strokeColor: '#333', strokeStyle: 'solid', fillColor: '#ccc', fillOpacity: 0.3 };     
+       }
+      }
+
+      function getLineStyle(type) {
+        if (type === 'mainflow') return { strokeWeight: 2, strokeColor: '#0775FC', strokeOpacity: 0.8 };
+        return { strokeWeight: 2, strokeColor: '#444', strokeOpacity: 0.5 };
+      }
+
+      kakao.maps.event.addListener(map, 'zoom_changed', function () {
+        openInfoWindows.forEach(iw => iw.close());
+        openInfoWindows.length = 0;
+      });
+      kakao.maps.event.addListener(map, 'click', function () {
+        openInfoWindows.forEach(iw => iw.close());
+        openInfoWindows.length = 0;
+
+        // 지도 클릭 시 입력 포커스 해제
+        const input = document.getElementById('keyword');
+        if (document.activeElement === input) {
+          input.blur();
+        }
+      });
+
+      window.nextSlide = function (btn) {
+        const imgs = btn.parentElement.querySelectorAll('img');
+        const idx = Array.from(imgs).findIndex(i => i.classList.contains('active'));
+        imgs[idx].classList.remove('active');
+        imgs[(idx + 1) % imgs.length].classList.add('active');
+      };
+      window.prevSlide = function (btn) {
+        const imgs = btn.parentElement.querySelectorAll('img');
+        const idx = Array.from(imgs).findIndex(i => i.classList.contains('active'));
+        imgs[idx].classList.remove('active');
+        imgs[(idx - 1 + imgs.length) % imgs.length].classList.add('active');
+      };
+
+      let gpsMarker = null;
+      let watchId = null;
+      const gpsBtn = document.getElementById('gpsToggleBtn');
+
+      gpsBtn.addEventListener('click', function () {
+        if (watchId) {
+          navigator.geolocation.clearWatch(watchId);
+          watchId = null;
+          if (gpsMarker) gpsMarker.setMap(null);
+          gpsBtn.classList.remove('gps-loading');
+        } else if (navigator.geolocation && /Mobi|Android/i.test(navigator.userAgent)) {
+          gpsBtn.classList.add('gps-loading');
+          watchId = navigator.geolocation.watchPosition(pos => {
+            const latlng = new kakao.maps.LatLng(pos.coords.latitude, pos.coords.longitude);
+            if (!gpsMarker) {
+              gpsMarker = new kakao.maps.Marker({
+                position: latlng,
+                image: new kakao.maps.MarkerImage(
+                  'https://maps.gstatic.com/mapfiles/ms2/micons/blue-dot.png',
+                  new kakao.maps.Size(32, 32),
+                  { offset: new kakao.maps.Point(16, 16) }
+                )
+              });
+            } else gpsMarker.setPosition(latlng);
+            gpsMarker.setMap(map);
+            map.panTo(latlng);
+            gpsBtn.classList.remove('gps-loading');
+          }, err => {
+            console.warn('GPS 오류:', err);
+            gpsBtn.classList.remove('gps-loading');
+          }, { enableHighAccuracy: true });
+        } else alert('GPS는 모바일 브라우저에서만 지원됩니다.');
+      });
+
+      drawLayerControl();
+      fetchLayers();
+    });
+  
+
+let ps, infowindow;
+
+let searchMarker = null; // 함수 밖 상단에 선언해두면 계속 재사용 가능
+
+function searchPlaces() {
+  const keyword = document.getElementById('keyword').value.trim();
+  if (!keyword) {
+    alert('검색어를 입력하세요!');
+    return;
+  }
+
+  const geocoder = new kakao.maps.services.Geocoder();
+  geocoder.addressSearch(keyword, function(result, status) {
+    const listEl = document.getElementById('placesList');
+    listEl.innerHTML = '';
+
+    if (status === kakao.maps.services.Status.OK) {
+      result.forEach(place => {
+        const el = document.createElement('li');
+        el.textContent = place.address.address_name;
+        el.style.cursor = 'pointer';
+        el.style.padding = '4px';
+        el.style.borderBottom = '1px solid #ddd';
+        el.onclick = () => {
+          const pos = new kakao.maps.LatLng(place.y, place.x);
+          map.setLevel(3);
+           map.panTo(pos);
+if (searchMarker) searchMarker.setMap(null);
+          searchMarker = new kakao.maps.Marker({
+            position: pos,
+            image: new kakao.maps.MarkerImage(
+              './photos/marker_yellow.png',
+              new kakao.maps.Size(32, 32),
+              { offset: new kakao.maps.Point(16, 32) }
+            )
+          });
+          searchMarker.setMap(map);  // 키보드 내리기: 입력창 포커스 해제
+          const input = document.getElementById('keyword');
+          input.blur();   // 모바일 화면 복원
+          setTimeout(() => {
+          window.scrollTo({ top: 0, left: 0, behavior: 'instant' }); // iOS에 강제 적용
+          document.body.scrollTop = 0;
+          map.relayout();  // 지도 재정렬
+          }, 300);
+        };
+        listEl.appendChild(el);
+      });
+    } else {
+      alert('검색 결과가 없습니다.');
+    }
+  });
+}
+
+document.getElementById('keyword').addEventListener('blur', () => {
+  setTimeout(() => {
+    window.scrollTo({ top: 0, left: 0, behavior: 'instant' });
+    map.relayout();
+  }, 300);
+});
+               
+        </script>
+</body>
+</html>
