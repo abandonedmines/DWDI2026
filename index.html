@@ -127,28 +127,32 @@ let map;
       const layerData = {
         adits: { file: 'DWDI_adits.geojson', name: '갱구', visible: true, zoomLevel: 3 },
         sampling: { file: 'DWDI_samplingresult_1st.geojson', name: '1차시료채취지점', visible: true },
+        sampling1: { file: 'DWDI_samplingsite_2nd.geojson', name: '2차시료채취지점', visible: true },
         non_remediation: { file: 'DWDI_non_soilremediation.geojson', name: '토양미복원지역', visible: true },  
         remediation: { file: 'DWDI_soilremediation.geojson', name: '토양복원지역', visible: true },
         flowlineSFD: { file: 'DWDI_SFDflowline.geojson', name: 'SFD유동선', visible: true },
-        boundary: { file: 'BG_boundary.geojson', name: '임야지역경계', visible: true },
-        sampling1: { file: 'BG_rice12.geojson', name: '논(채취예정지점)', visible: true },
-        sampling2: { file: 'DWDI_samplingsite_2nd.geojson', name: '2차시료채취지점', visible: true }
+        boundary: { file: 'BG_boundary.geojson', name: '임야지역경계', visible: true }
       };
 
-      const layerOrder = ['adits', 'sampling', 'sampling2', 'sampling1', 'non_remediation', 'remediation', 'flowlineSFD', 'boundary'];
+      const layerOrder = ['adits', 'sampling', 'sampling1', 'non_remediation', 'remediation', 'flowlineSFD', 'boundary'];
       const layerObjects = {};
 
       const markerIcons = {
+        adits: {
+          url: './photos/marker_red.png',
+          size: new kakao.maps.Size(32, 32),
+          offset: new kakao.maps.Point(16, 32)
+        },
         sampling: {
           url: './photos/marker_blue.png',
           size: new kakao.maps.Size(32, 32),
           offset: new kakao.maps.Point(16, 32)
         },
-        adits: {
-          url: './photos/marker_red.png',
+        sampling1: {
+          url: './photos/marker_green.png',
           size: new kakao.maps.Size(32, 32),
           offset: new kakao.maps.Point(16, 32)
-        }
+        }          
       };
 
       const openInfoWindows = [];
@@ -283,12 +287,6 @@ let map;
        else if (type === 'remediation') {
        return { strokeWeight: 2.5, strokeColor: '#7601F3', strokeStyle: 'solid', fillColor: '#A016FC', fillOpacity: 0.3 };
        } 
-       else if (type === 'sampling1') {
-       return { strokeWeight: 3, strokeColor: '#d4d144', strokeStyle: 'solid', fillColor: '#fcfc11', fillOpacity: 0.7 };
-       } 
-       else if (type === 'sampling2') {
-       return { strokeWeight: 3, strokeColor: '#05F5111', strokeStyle: 'solid', fillColor: '#04BF0D', fillOpacity: 0.7 };
-       }   
        else { return { strokeWeight: 2, strokeColor: '#333', strokeStyle: 'solid', fillColor: '#ccc', fillOpacity: 0.3 };     
        }
       }
