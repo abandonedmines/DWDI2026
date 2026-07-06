@@ -128,13 +128,14 @@ let map;
         adits: { file: 'DWDI_adits.geojson', name: '갱구', visible: true, zoomLevel: 3 },
         sampling: { file: 'DWDI_samplingresult_1st.geojson', name: '1차시료채취지점', visible: true },
         sampling1: { file: 'DWDI_samplingsite_2nd.geojson', name: '2차시료채취지점', visible: true },
+        sampling2: { file: 'DWDI_samplingNIER1.geojson', name: '과학원채취지점', visible: true },          
         non_remediation: { file: 'DWDI_non_soilremediation.geojson', name: '토양미복원지역', visible: true },  
         remediation: { file: 'DWDI_soilremediation.geojson', name: '토양복원지역', visible: true },
         flowlineSFD: { file: 'DWDI_SFDflowline.geojson', name: 'SFD유동선', visible: true },
         boundary: { file: 'BG_boundary.geojson', name: '임야지역경계', visible: true }
       };
 
-      const layerOrder = ['adits', 'sampling', 'sampling1', 'non_remediation', 'remediation', 'flowlineSFD', 'boundary'];
+      const layerOrder = ['adits', 'sampling', 'sampling1', 'sampling2', 'non_remediation', 'remediation', 'flowlineSFD', 'boundary'];
       const layerObjects = {};
 
       const markerIcons = {
@@ -150,6 +151,11 @@ let map;
         },
         sampling1: {
           url: './photos/marker_green.png',
+          size: new kakao.maps.Size(32, 32),
+          offset: new kakao.maps.Point(16, 32)
+        },
+        sampling2: {
+          url: './photos/marker_orange.png',
           size: new kakao.maps.Size(32, 32),
           offset: new kakao.maps.Point(16, 32)
         }          
