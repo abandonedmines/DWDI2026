@@ -1,0 +1,12 @@
+{
+"type": "FeatureCollection",
+"name": "DWDI_adits",
+"crs": { "type": "name", "properties": { "name": "urn:ogc:def:crs:OGC:1.3:CRS84" } },
+"features": [
+{ "type": "Feature", "properties": { "fid_1": 1.0, "갱구_번": "갱구2", "name": "갱구" }, "geometry": { "type": "Point", "coordinates": [ 128.803072131240469, 37.189911449171859 ] } },
+{ "type": "Feature", "properties": { "fid_1": 2.0, "갱구_번": "갱구1", "name": "갱구(수)" }, "geometry": { "type": "Point", "coordinates": [ 128.803922775353612, 37.18799686871192 ] } },
+{ "type": "Feature", "properties": { "fid_1": 3.0, "갱구_번": "갱구3", "name": "갱구" }, "geometry": { "type": "Point", "coordinates": [ 128.804632605923359, 37.188884030044555 ] } },
+{ "type": "Feature", "properties": { "fid_1": 4.0, "갱구_번": "갱구4", "name": "갱구" }, "geometry": { "type": "Point", "coordinates": [ 128.804901105084667, 37.188622356362217 ] } },
+{ "type": "Feature", "properties": { "fid_1": 5.0, "갱구_번": "갱구5", "name": "갱구" }, "geometry": { "type": "Point", "coordinates": [ 128.806627472083392, 37.187974181422497 ] } }
+]
+}
