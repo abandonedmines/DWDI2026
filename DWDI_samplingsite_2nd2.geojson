@@ -1,0 +1,20 @@
+{
+"type": "FeatureCollection",
+"name": "DWDI_samplingsite_2nd2",
+"crs": { "type": "name", "properties": { "name": "urn:ogc:def:crs:OGC:1.3:CRS84" } },
+"features": [
+{ "type": "Feature", "properties": { "TYPE": "T", "NM_MINE": "동원-덕일", "name": "DD-S-01", "X": 128.8008899, "Y": 37.19124887, "SP_DATE1": "2026-06-23" }, "geometry": { "type": "Point", "coordinates": [ 128.800889899749109, 37.191248870239235 ] } },
+{ "type": "Feature", "properties": { "TYPE": "T", "NM_MINE": "동원-덕일", "name": "DD-S-03", "X": 128.8010532, "Y": 37.18912019, "SP_DATE1": "2026-06-23" }, "geometry": { "type": "Point", "coordinates": [ 128.801053200444926, 37.189120190244637 ] } },
+{ "type": "Feature", "properties": { "TYPE": "T", "NM_MINE": "동원-덕일", "name": "DD-S-04", "X": 128.8015631, "Y": 37.1883016, "SP_DATE1": "2026-06-23" }, "geometry": { "type": "Point", "coordinates": [ 128.801563099857276, 37.188301600338662 ] } },
+{ "type": "Feature", "properties": { "TYPE": "T", "NM_MINE": "동원-덕일", "name": "DD-S-05", "X": 128.8021587, "Y": 37.187779, "SP_DATE1": "2026-06-23" }, "geometry": { "type": "Point", "coordinates": [ 128.802158700164, 37.187778999801026 ] } },
+{ "type": "Feature", "properties": { "TYPE": "T", "NM_MINE": "동원-덕일", "name": "DD-S-06", "X": 128.803003, "Y": 37.18587419, "SP_DATE1": "2026-06-23" }, "geometry": { "type": "Point", "coordinates": [ 128.803002999888577, 37.185874189842025 ] } },
+{ "type": "Feature", "properties": { "TYPE": "T", "NM_MINE": "동원-덕일", "name": "DD-S-07", "X": 128.8024097, "Y": 37.18507238, "SP_DATE1": "2026-06-23" }, "geometry": { "type": "Point", "coordinates": [ 128.802409700047633, 37.185072380386089 ] } },
+{ "type": "Feature", "properties": { "TYPE": "SW", "NM_MINE": "동원-덕일", "name": "DD-SW-11", "X": 128.7936831, "Y": 37.17603447, "SP_DATE1": "2026-06-24" }, "geometry": { "type": "Point", "coordinates": [ 128.793683099795317, 37.176034469914896 ] } },
+{ "type": "Feature", "properties": { "TYPE": "SW", "NM_MINE": "동원-덕일", "name": "DD-SW-14", "X": 128.7974834, "Y": 37.17943645, "SP_DATE1": "2026-06-25" }, "geometry": { "type": "Point", "coordinates": [ 128.797483400038914, 37.179436449632476 ] } },
+{ "type": "Feature", "properties": { "TYPE": "SW", "NM_MINE": "동원-덕일", "name": "DD-SW-15", "X": 128.7882273, "Y": 37.17534215, "SP_DATE1": "2026-06-25" }, "geometry": { "type": "Point", "coordinates": [ 128.788227299650202, 37.175342150220104 ] } },
+{ "type": "Feature", "properties": { "TYPE": "B", "NM_MINE": "동원-덕일", "name": "DD-BS-01", "X": 128.7975512, "Y": 37.19363751, "SP_DATE1": "2026-06-24" }, "geometry": { "type": "Point", "coordinates": [ 128.797551199927966, 37.19363751006307 ] } },
+{ "type": "Feature", "properties": { "TYPE": "B", "NM_MINE": "동원-덕일", "name": "DD-BS-01", "X": 128.7945085, "Y": 37.19045831, "SP_DATE1": "2026-06-24" }, "geometry": { "type": "Point", "coordinates": [ 128.79450850026717, 37.190458310402732 ] } },
+{ "type": "Feature", "properties": { "TYPE": "B", "NM_MINE": "동원-덕일", "name": "DD-BS-01", "X": 128.7929686, "Y": 37.18986449, "SP_DATE1": "2026-06-24" }, "geometry": { "type": "Point", "coordinates": [ 128.792968600120844, 37.189864489854358 ] } },
+{ "type": "Feature", "properties": { "TYPE": "B", "NM_MINE": "동원-덕일", "name": "DD-BS-01", "X": 128.78611, "Y": 37.18003982, "SP_DATE1": "2026-06-24" }, "geometry": { "type": "Point", "coordinates": [ 128.786109999676796, 37.180039820081674 ] } }
+]
+}
